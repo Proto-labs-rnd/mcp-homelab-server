@@ -1,101 +1,110 @@
-# MCP Homelab Server
+# MCP Homelab Server 🏠
 
 > **Model Context Protocol server for homelab management**
-> Give AI agents access to your homelab: Docker, Ollama, system stats, and more
+> Give AI agents access to your homelab: Docker, Ollama, system stats, and more.
 
-## What is this?
+## What Is This?
 
-An MCP server that exposes tools for managing and monitoring a local homelab. AI agents like Claude, ChatGPT, or Cursor can use these tools to interact with your homelab infrastructure safely.
+An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that exposes homelab tools to AI agents like Claude, GPT, or any MCP-compatible client. Instead of writing scripts yourself, just ask your AI agent to manage your infrastructure.
 
-## Features
+**Example conversations:**
+- "List all running Docker containers"
+- "How much RAM is Ollama using?"
+- "Pull the llama3 model"
+- "Show me disk usage on the server"
 
-### Tools
-- **`docker_ps`** - List running Docker containers
-- **`docker_stats`** - Get container resource usage (CPU, RAM, network)
-- **`docker_logs`** - Fetch logs from a specific container
-- **`ollama_list`** - List available Ollama models
-- **`ollama_generate`** - Generate text with a local Ollama model
-- **`system_stats`** - Get system statistics (CPU, RAM, disk, temperature)
-- **`backup_status`** - Check backup status and last backup time
+## Tools Provided
 
-### Why is this useful?
+### Docker Management
+| Tool | Description |
+|------|-------------|
+| `docker_ps` | List running containers |
+| `docker_logs` | Get container logs |
+| `docker_restart` | Restart a container |
+| `docker_stop` | Stop a container |
+| `docker_stats` | Resource usage (CPU, RAM, network) |
 
-Instead of remembering Docker commands or SSH'ing into your homelab, you can ask Claude:
-- "Show me the resource usage of all containers"
-- "Generate a summary with phi3:mini"
-- "Are my backups working?"
-- "What's the CPU temperature on cortex?"
+### Ollama / LLM Management
+| Tool | Description |
+|------|-------------|
+| `ollama_list` | List installed models |
+| `ollama_pull` | Pull a new model |
+| `ollama_ps` | Show running models and memory usage |
+| `ollama_generate` | Run a quick inference test |
 
-## Installation
+### System Monitoring
+| Tool | Description |
+|------|-------------|
+| `system_stats` | CPU, RAM, disk, uptime |
+| `disk_usage` | Detailed disk usage by mount |
+| `network_status` | Network interfaces and connections |
+| `process_top` | Top processes by CPU/RAM |
 
-```bash
-# Clone the repo
-git clone https://github.com/YOUR_USERNAME/mcp-homelab-server.git
-cd mcp-homelab-server
+## Quick Start
 
-# Install dependencies
-uv venv
-source .venv/bin/activate
-uv install mcp httpx docker
+### With Claude Desktop / Cursor / any MCP client
 
-# Run the server
-python src/server.py
-```
-
-## Configuration (Claude Desktop)
-
-Add to your `claude_desktop_config.json`:
+Add to your MCP client configuration:
 
 ```json
 {
   "mcpServers": {
     "homelab": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "/ABSOLUTE/PATH/TO/mcp-homelab-server",
-        "run",
-        "python src/server.py"
-      ],
-      "env": {
-        "DOCKER_HOST": "unix:///var/run/docker.sock",
-        "OLLAMA_HOST": "http://localhost:11434"
-      }
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-homelab"]
     }
   }
 }
 ```
 
-## Security
+### With OpenClaw
 
-⚠️ **This server gives AI agents access to your homelab. Use with caution:**
+```json
+{
+  "mcpServers": {
+    "homelab": {
+      "command": "python3",
+      "args": ["path/to/mcp-homelab-server/src/server.py"]
+    }
+  }
+}
+```
 
-- Only connect to trusted AI clients (Claude, ChatGPT, Cursor)
-- Review tool permissions before enabling
-- Consider running in a sandboxed environment
-- Never expose this server to the public internet
-
-## Development
+### Standalone (for testing)
 
 ```bash
-# Run tests
-uv run pytest
+git clone https://github.com/Proto-labs-rnd/mcp-homelab-server.git
+cd mcp-homelab-server
+pip install -r requirements.txt
+python3 src/server.py
+```
 
-# Lint
-uv run ruff check src/
+## Requirements
 
-# Format
-uv run ruff format src/
+- Python 3.10+
+- Docker (for Docker tools)
+- Ollama (for LLM tools, optional)
+- Linux/macOS (system stats rely on standard Unix tools)
+
+## Architecture
+
+```
+MCP Client (Claude, Cursor, OpenClaw, etc.)
+        │
+        ▼
+┌─────────────────────┐
+│  MCP Server (stdio)  │
+│  ┌───────────────┐  │
+│  │ Docker Tools  │  │
+│  │ Ollama Tools  │  │
+│  │ System Tools  │  │
+│  └───────────────┘  │
+└─────────────────────┘
+        │
+        ▼
+   Your Homelab
 ```
 
 ## License
 
-MIT License - feel free to use and modify for your homelab!
-
-## Contributing
-
-Contributions welcome! Please open an issue or PR.
-
----
-
-**Built with ❤️ for the self-hosting community**
+MIT
